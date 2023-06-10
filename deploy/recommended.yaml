@@ -1,4 +1,5 @@
 ---
+# Source: transip-webhook/templates/rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -6,47 +7,21 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: Role
-metadata:
-  name: transip-webhook
-  namespace: cert-manager
-  labels:
-    app: transip-webhook
-rules:
-  - apiGroups:
-      - ''
-    resources:
-      - 'secrets'
-    verbs:
-      - 'get'
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: RoleBinding
-metadata:
-  name: transip-webhook
-  namespace: cert-manager
-  labels:
-    app: transip-webhook
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: transip-webhook
-subjects:
-  - apiGroup: ""
-    kind: ServiceAccount
-    name: transip-webhook
-    namespace: cert-manager
----
+# Source: transip-webhook/templates/rbac.yaml
 # Grant cert-manager permission to validate using our apiserver
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: transip-webhook:domain-solver
-  namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 rules:
   - apiGroups:
       - cert-manager.webhook.transip
@@ -55,15 +30,18 @@ rules:
     verbs:
       - 'create'
 ---
+# Source: transip-webhook/templates/rbac.yaml
 # apiserver gets the auth-delegator role to delegate auth decisions to
 # the core apiserver
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: transip-webhook:auth-delegator
-  namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -74,13 +52,16 @@ subjects:
     name: transip-webhook
     namespace: cert-manager
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+# Source: transip-webhook/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: transip-webhook:domain-solver
-  namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -91,16 +72,40 @@ subjects:
     name: cert-manager
     namespace: cert-manager
 ---
+# Source: transip-webhook/templates/rbac.yaml
+# Grant cert-manager permission to read secrets from cert-manager ns (i.e. to read the api key for transip)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: transip-webhook:transip-auth
+  namespace: cert-manager
+  labels:
+    app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - 'secrets'
+    verbs:
+      - 'get'
+---
+# Source: transip-webhook/templates/rbac.yaml
 # Grant the webhook permission to read the ConfigMap containing the Kubernetes
 # apiserver's requestheader-ca-certificate.
 # This ConfigMap is automatically created by the Kubernetes apiserver.
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: transip-webhook:webhook-authentication-reader
   namespace: kube-system
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -111,6 +116,28 @@ subjects:
     name: transip-webhook
     namespace: cert-manager
 ---
+# Source: transip-webhook/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: transip-webhook:transip-auth
+  namespace: cert-manager
+  labels:
+    app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: transip-webhook:transip-auth
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: transip-webhook
+    namespace: cert-manager
+---
+# Source: transip-webhook/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -118,6 +145,9 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 spec:
   type: ClusterIP
   ports:
@@ -127,7 +157,9 @@ spec:
       name: https
   selector:
     app: transip-webhook
+    release: transip-webhook
 ---
+# Source: transip-webhook/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -135,15 +167,20 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 spec:
-  replicas: 1
+  replicas: 
   selector:
     matchLabels:
       app: transip-webhook
+      release: transip-webhook
   template:
     metadata:
       labels:
         app: transip-webhook
+        release: transip-webhook
     spec:
       serviceAccountName: transip-webhook
       containers:
@@ -174,20 +211,25 @@ spec:
             - name: certs
               mountPath: /tls
               readOnly: true
+          resources:
+            {}
       volumes:
         - name: certs
           secret:
-            secretName: transip-webhook-tls
+            secretName: transip-webhook-webhook-tls
 ---
-apiVersion: apiregistration.k8s.io/v1beta1
+# Source: transip-webhook/templates/apiservice.yaml
+apiVersion: apiregistration.k8s.io/v1
 kind: APIService
 metadata:
   name: v1alpha1.cert-manager.webhook.transip
-  namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
   annotations:
-    cert-manager.io/inject-ca-from: "cert-manager/transip-webhook-tls"
+    cert-manager.io/inject-ca-from: "cert-manager/transip-webhook-webhook-tls"
 spec:
   group: cert-manager.webhook.transip
   groupPriorityMinimum: 1000
@@ -197,14 +239,18 @@ spec:
     namespace: cert-manager
   version: v1alpha1
 ---
+# Source: transip-webhook/templates/pki.yaml
 # Generate a CA Certificate used to sign certificates for the webhook
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: transip-webhook-ca
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 spec:
   secretName: transip-webhook-ca
   duration: 43800h # 5y
@@ -213,46 +259,56 @@ spec:
   commonName: "ca.transip-webhook.cert-manager"
   isCA: true
 ---
+# Source: transip-webhook/templates/pki.yaml
 # Finally, generate a serving certificate for the webhook to use
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: transip-webhook-tls
+  name: transip-webhook-webhook-tls
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 spec:
-  secretName: transip-webhook-tls
+  secretName: transip-webhook-webhook-tls
   duration: 8760h # 1y
   issuerRef:
     name: transip-webhook-ca
   dnsNames:
-    - transip-webhook
-    - transip-webhook.cert-manager
-    - transip-webhook.cert-manager.svc
-    - transip-webhook.cert-manager.svc.cluster.local
+  - transip-webhook
+  - transip-webhook.cert-manager
+  - transip-webhook.cert-manager.svc
 ---
+# Source: transip-webhook/templates/pki.yaml
 # Create a selfsigned Issuer, in order to create a root CA certificate for
 # signing webhook serving certificates
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: transip-webhook-selfsign
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 spec:
   selfSigned: {}
 ---
 # Source: transip-webhook/templates/pki.yaml
 # Create an Issuer that uses the above generated CA certificate to issue certs
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: transip-webhook-ca
   namespace: cert-manager
   labels:
     app: transip-webhook
+    chart: transip-webhook-0.1.0
+    release: transip-webhook
+    heritage: Helm
 spec:
   ca:
     secretName: transip-webhook-ca
