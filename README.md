@@ -8,7 +8,7 @@ You can use Helm to deploy the webhook:
 
 ```shell script
 $ git clone ...
-$ helm install cert-manager-webhook-transip --namespace=cert-manager ./deploy/transip-webhook
+$ helm install cert-manager-webhook-transip --namespace=cert-manager oci://ghcr.io/lion7/cert-manager-webhook-transip
 ```
 
 Alternatively, you can use kubectl to deploy:
