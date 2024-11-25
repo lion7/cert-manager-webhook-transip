@@ -90,12 +90,11 @@ subjects:
     name: {{ .Values.certManager.serviceAccountName }}
     namespace: {{ .Values.certManager.namespace }}
 ---
-# Grant cert-manager permission to read secrets from cert-manager ns (i.e. to read the api key for transip)
+# Grant the webhook permission to read secrets (i.e. to read the api key for transip)
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: {{ include "transip-webhook.fullname" . }}:transip-auth
-  namespace: {{ .Values.certManager.namespace }}
   labels:
     app: {{ include "transip-webhook.name" . }}
     chart: {{ include "transip-webhook.chart" . }}
@@ -110,10 +109,9 @@ rules:
       - 'get'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: {{ include "transip-webhook.fullname" . }}:transip-auth
-  namespace: {{ .Values.certManager.namespace }}
   labels:
     app: {{ include "transip-webhook.name" . }}
     chart: {{ include "transip-webhook.chart" . }}
