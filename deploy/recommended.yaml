@@ -1,4 +1,4 @@
----
+--- # Generated with: helm template -n cert-manager transip-webhook transip-webhook > recommended.yaml
 # Source: transip-webhook/templates/rbac.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -7,7 +7,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 ---
@@ -19,7 +19,7 @@ metadata:
   name: transip-webhook:domain-solver
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 rules:
@@ -31,6 +31,25 @@ rules:
       - 'create'
 ---
 # Source: transip-webhook/templates/rbac.yaml
+# Grant the webhook permission to read secrets (i.e. to read the api key for transip)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: transip-webhook:transip-auth
+  labels:
+    app: transip-webhook
+    chart: transip-webhook-0.1.2
+    release: transip-webhook
+    heritage: Helm
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - 'secrets'
+    verbs:
+      - 'get'
+---
+# Source: transip-webhook/templates/rbac.yaml
 # apiserver gets the auth-delegator role to delegate auth decisions to
 # the core apiserver
 apiVersion: rbac.authorization.k8s.io/v1
@@ -39,7 +58,7 @@ metadata:
   name: transip-webhook:auth-delegator
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 roleRef:
@@ -59,7 +78,7 @@ metadata:
   name: transip-webhook:domain-solver
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 roleRef:
@@ -73,24 +92,24 @@ subjects:
     namespace: cert-manager
 ---
 # Source: transip-webhook/templates/rbac.yaml
-# Grant cert-manager permission to read secrets from cert-manager ns (i.e. to read the api key for transip)
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRoleBinding
 metadata:
   name: transip-webhook:transip-auth
-  namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
-rules:
-  - apiGroups:
-      - ''
-    resources:
-      - 'secrets'
-    verbs:
-      - 'get'
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: transip-webhook:transip-auth
+subjects:
+  - apiGroup: ""
+    kind: ServiceAccount
+    name: transip-webhook
+    namespace: cert-manager
 ---
 # Source: transip-webhook/templates/rbac.yaml
 # Grant the webhook permission to read the ConfigMap containing the Kubernetes
@@ -103,34 +122,13 @@ metadata:
   namespace: kube-system
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: extension-apiserver-authentication-reader
-subjects:
-  - apiGroup: ""
-    kind: ServiceAccount
-    name: transip-webhook
-    namespace: cert-manager
----
-# Source: transip-webhook/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: transip-webhook:transip-auth
-  namespace: cert-manager
-  labels:
-    app: transip-webhook
-    chart: transip-webhook-0.1.0
-    release: transip-webhook
-    heritage: Helm
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: transip-webhook:transip-auth
 subjects:
   - apiGroup: ""
     kind: ServiceAccount
@@ -145,7 +143,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 spec:
@@ -167,7 +165,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 spec:
@@ -225,7 +223,7 @@ metadata:
   name: v1alpha1.cert-manager.webhook.transip
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
   annotations:
@@ -248,7 +246,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 spec:
@@ -268,7 +266,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 spec:
@@ -291,7 +289,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 spec:
@@ -306,7 +304,7 @@ metadata:
   namespace: cert-manager
   labels:
     app: transip-webhook
-    chart: transip-webhook-0.1.0
+    chart: transip-webhook-0.1.2
     release: transip-webhook
     heritage: Helm
 spec:
