@@ -5,7 +5,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: {{ include "transip-webhook.selfSignedIssuer" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     app: {{ include "transip-webhook.name" . }}
     chart: {{ include "transip-webhook.chart" . }}
@@ -21,7 +21,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "transip-webhook.rootCACertificate" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     app: {{ include "transip-webhook.name" . }}
     chart: {{ include "transip-webhook.chart" . }}
@@ -42,7 +42,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: {{ include "transip-webhook.rootCAIssuer" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     app: {{ include "transip-webhook.name" . }}
     chart: {{ include "transip-webhook.chart" . }}
@@ -59,7 +59,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: {{ include "transip-webhook.servingCertificate" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     app: {{ include "transip-webhook.name" . }}
     chart: {{ include "transip-webhook.chart" . }}
@@ -74,3 +74,4 @@ spec:
   - {{ include "transip-webhook.fullname" . }}
   - {{ include "transip-webhook.fullname" . }}.{{ .Release.Namespace }}
   - {{ include "transip-webhook.fullname" . }}.{{ .Release.Namespace }}.svc
+  - {{ include "transip-webhook.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local

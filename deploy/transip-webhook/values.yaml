@@ -4,10 +4,17 @@ certManager:
   namespace: cert-manager
   serviceAccountName: cert-manager
 
+# Reference to one or more secrets to be used when pulling images.
+# For more information, see [Pull an Image from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+#
+# For example:
+#  imagePullSecrets:
+#    - name: "image-pull-secret"
+imagePullSecrets: []
+
 image:
-  repository: maaroen/cert-manager-webhook-transip
+  repository: ghcr.io/lion7/cert-manager-webhook-transip
   tag: latest
-  privateRegistrySecretName: ""
   pullPolicy: IfNotPresent
 
 nameOverride: ""
@@ -17,13 +24,19 @@ service:
   type: ClusterIP
   port: 443
 
+replicaCount: 1
+
 resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
   #  cpu: 100m
-  #  memory: 64Mi
+  #  memory: 128Mi
   # requests:
   #  cpu: 100m
-  #  memory: 16Mi
+  #  memory: 128Mi
 
 nodeSelector: {}
 
