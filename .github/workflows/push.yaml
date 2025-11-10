@@ -12,4 +12,6 @@ jobs:
           go-version: '1.23.x'
       - uses: azure/setup-helm@v4.3.0
       - run: go build
-      - run: helm lint ./deploy/transip-webhook
+      - run: |
+          echo "version: 0.0.0" >> ./deploy/transip-webhook/Chart.yaml
+          helm lint ./deploy/transip-webhook
